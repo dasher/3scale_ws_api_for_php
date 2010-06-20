@@ -10,10 +10,37 @@ $provider_key = "3scale-xxx";
 // Put some user key here (you can test it with the one from test contract):
 $user_key = "3scale-yyy";
 
+$client = new ThreeScaleClient($provider_key);
 
-$interface = new ThreeScaleInterface($host, $provider_key);
-$transaction = $interface->start($user_key, array('hits' => 1));
+// Auth the users key
+$response = $client->authorize($user_key);
 
-var_export($transaction);
+// Check the response type
+if ($response->isSuccess()) {
+	// All fine, proceeed & pull the usages
+	$usages = $response->getUsages();
+	
+	echo "Success: ".$response->getPlan();
+	echo "Success: ".var_export($usages,true);
 
+	// Handle the current issues with the test keys
+	if (count($usages)>0) {
+		$usage  = $usages[0];
+		echo "Success: ".var_export($usage,true);		  
+	}
+} else {
+	// Something's wrong with this user.
+	$errors = $response->getErrors();
+	$error  = $errors[0];
+	echo "Error: ".var_export($error->getMessage(),true);			
+}
+	
+// Report some usages
+$response = $client->report(
+	array(
+	  array('user_key' => "a47bf3fd07cdef0957bfc154c2a4cac0",  'usage' => array('hits' => 1)),
+	  array('user_key' => "a47bf3fd07cdef0957bfc154c2a4cac0", 'usage' => array('hits' => 1))
+	)
+);
+		  
 ?>
